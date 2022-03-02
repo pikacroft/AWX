@@ -1,0 +1,9 @@
+#jinja2: trim_blocks:False
+{
+  "extra_vars": {
+    "app_trigram": "{{ tri | lower }}",
+    "app_irt_code": "{{ irtcode | lower }}",
+    "app_entity": "itim",
+    "lucid_target_env": "{{ env_item | lower }}"
+  }
+}
