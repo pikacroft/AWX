@@ -1,0 +1,26 @@
+---
+
+- name: "[role_devops_awx]/[create_teams] - Check if the team {{ team_item }} is already present"
+  uri:
+    url: "{{ role_devops_awx_api_url }}/teams/?search={{ team_item }}"
+    method: "GET"
+    headers:
+      Content-Type: "application/json"
+      Authorization: "Bearer {{ token }}"
+    validate_certs: "no"
+  register: get_team
+
+- name: "[role_devops_awx]/[create_teams] - Create the team {{ team_item }}"
+  uri:
+    url: "{{ role_devops_awx_api_url }}/teams/"
+    method: "POST"
+    headers:
+      Content-Type: "application/json"
+      Authorization: "Bearer {{ token }}"
+    body: "{{ lookup('template','create_team.json.j2') }}"
+    body_format: "json"
+    status_code: 201
+    validate_certs: "no"
+  when: "get_team.json.count == 0"
+
+...
