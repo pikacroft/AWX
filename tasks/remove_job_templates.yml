@@ -1,0 +1,46 @@
+---
+- set_fact:
+       template_name: "{{ tri }}_{{ irtcode }}_LUD_JOB_{{ env_item }}_{{ app_name }}"
+
+- name: "[role_devops_awx]/[create_job_templates] - Check if the job_templates {{ template_name }} is already present"
+  uri:
+    url: "{{ role_devops_awx_api_url }}/job_templates/?search={{ template_name }}"
+    method: "GET"
+    headers:
+      Content-Type: "application/json"
+      Authorization: "Bearer {{ token }}"
+    validate_certs: "no"
+  register: get_job_template
+
+- name: "[role_devops_awx]/[delete_job_templates] - Number of AWX job_templates found: 0"
+  fail:
+    msg: "No AWX job_template found with the name of {{ template_name }} or the user {{ role_devops_awx_login_user }} has no rights on it!"
+  when: "get_job_template.json.count == 0"
+
+- name: "[role_devops_awx]/[delete_job_templates] - Number of AWX job_templates found: at least 2"
+  fail:
+    msg: "The number of AWX job_templates found with the name of {{ template_name }} is greater than 1!"
+  when: "get_job_template.json.count > 1"
+
+- name: "[role_devops_awx]/[delete_job_templates] - Get the id of the AWX job_templates"
+  set_fact:
+    job_template_id: "{{ get_job_template.json.results.0.id }}"
+  when: "get_job_template.json.count == 1"
+
+- name: "[role_devops_awx]/[delete_job_templates] - delete the job_template {{ template_name }}"
+  uri:
+    url: "{{ role_devops_awx_api_url }}/job_templates/{{ job_template_id }}/"
+    method: "DELETE"
+    headers:
+      Content-Type: "application/json"
+      Authorization: "Bearer {{ token }}"
+    validate_certs: "no"
+    follow_redirects: all
+    return_content: yes
+    status_code: 
+    - 204
+    - 301
+  register: delete_job_template
+  when: "get_job_template.json.count == 1"
+  changed_when: delete_job_template.status == 204
+...
