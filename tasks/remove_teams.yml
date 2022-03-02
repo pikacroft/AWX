@@ -1,0 +1,26 @@
+---
+
+- name: "[role_devops_awx]/[remove_teams] - Check if the team {{ team_item }} is already absent"
+  uri:
+    url: "{{ role_devops_awx_api_url }}/teams/?search={{ team_item }}"
+    method: "GET"
+    headers:
+      Content-Type: "application/json"
+      Authorization: "Bearer {{ token }}"
+    validate_certs: "no"
+  register: get_team
+
+- name: "[role_devops_awx]/[remove_teams] - Delete the team {{ team_item }}"
+  uri:
+    url: "{{ role_devops_awx_api_url }}/teams/{{ get_team.json.results.0.id }}"
+    method: "DELETE"
+    headers:
+      Content-Type: "application/json"
+      Authorization: "Bearer {{ token }}"
+    status_code:
+    - 301
+    - 204
+    validate_certs: "no"
+  when: "get_team.json.count == 1"
+
+...
