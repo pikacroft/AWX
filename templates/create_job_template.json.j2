@@ -1,0 +1,12 @@
+#jinja2: trim_blocks:False
+{
+   "name":"{{ tri }}_{{ irtcode }}_LUD_JOB_{{ env_item }}_{{ app_name }}",
+   "description": "job template {{ tri }}_{{ irtcode }}_LUD_JOB_{{ env_item }}_{{ app_name }} for {{ tri }} {{ irtcode }}",
+   "job_type":"run",
+   "inventory": "{{ inventory_id }}",
+   "project": "{{ project_id }}",
+   "playbook": "play.yml",
+   "verbosity": "2",
+   "ask_variables_on_launch": "true",
+   "use_fact_cache": "true"
+}
