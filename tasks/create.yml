@@ -1,0 +1,57 @@
+---
+- name: "main/CRUMB credential - Get the crumb authentification for jenkins"
+  uri:
+    url: '{{ role_devops_awx_jenkins_url }}/team-bigdata/crumbIssuer/api/xml?xpath=concat(//crumbRequestField,%22:%22,//crumb)'
+    method: GET
+    user: "{{ role_devops_awx_jenkins_user }}"
+    password: "{{ role_devops_awx_jenkins_token }}"
+    status_code: 200
+    force_basic_auth: yes
+    return_content: yes
+  register: crumb
+
+- name:  "[role_devops_awx]/[create] - Check that input variables are well transmitted to create the resources in AWX"
+  assert:
+    that: "{{ item }} is defined"
+  with_items:
+    - role_devops_awx_api_url
+
+#- name: "[role_devops_awx]/[create] - Creation of Teams"
+#  include: crate_teams.yml
+#  with_items:#    - "{{ role_devops_awx_teams_list }}"
+#  loop_control:
+#    loop_var: team_item
+
+- name: "[role_devops_awx]/[create] - Creation of projects"
+  include: create_projects.yml
+  with_items:
+    - "{{ role_devops_awx_projects_list }}"
+  loop_control:
+    loop_var: projects_item
+
+- name: "[role_devops_awx]/[create] - Creation of inventories"
+  include: create_inventories.yml obj={{ inventory_item }}
+  with_items:
+    - "{{ role_devops_awx_inventory_list }}"
+  loop_control:
+    loop_var: inventory_item
+
+
+- name: "wait project création ..."
+  pause:
+    minutes: 1
+
+- name: "[role_devops_awx]/[create] - Creation of job_template"
+  include: create_job_templates.yml
+  with_items:
+    - "{{ role_devops_awx_env_list }}"
+  loop_control:
+    loop_var: env_item
+
+- name: "[role_devops_awx]/[create] - Creation of users"
+  include: create_users.yml
+  with_items:
+    - "{{ role_devops_awx_jenkins_env_list }}"
+  loop_control:
+    loop_var: jenkins_env_item
+...
