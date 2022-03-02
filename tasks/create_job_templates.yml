@@ -1,0 +1,75 @@
+- name: "[role_devops_awx]/[create_job_templates] - Check if the job_templates {{ tri }}_{{ irtcode }}_LUD_JOB_{{ env_item }}_{{ app_name }} is already present"
+  uri:
+    url: "{{ role_devops_awx_api_url }}/job_templates/?search={{ tri }}_{{ irtcode }}_LUD_JOB_{{ env_item }}_{{ app_name }}"
+    method: "GET"
+    headers:
+      Content-Type: "application/json"
+      Authorization: "Bearer {{ token }}"
+    validate_certs: "no"
+  register: get_job_template
+
+- name: "[role_devops_awx]/[job_templates] - Check if the project {{ tri }}_{{ irtcode }}_LUD_PROJECT_{{ app_name }} is already present"
+  uri:
+    url: "{{ role_devops_awx_api_url }}/projects/?search={{ tri }}_{{ irtcode }}_LUD_PROJECT_{{ app_name }}"
+    method: "GET"
+    headers:
+      Content-Type: "application/json"
+      Authorization: "Bearer {{ token }}"
+    validate_certs: "no"
+  register: get_project
+
+- name: "[role_devops_awx]/[job_templates] - Number of AWX projects found: 0"
+  fail:
+    msg: "No AWX project found with the name of {{ tri }}_{{ irtcode }}_LUD_PROJECT_{{ app_name }} or the user {{ role_devops_awx_login_user }} has no rights on it!"
+  when: "get_project.json.count == 0"
+
+- name: "[role_devops_awx]/[job_templates] - Number of AWX project found: at least 2"
+  fail:
+    msg: "The number of AWX projects found with the name of {{ tri }}_{{ irtcode }}_LUD_PROJECT_{{ app_name }} is greater than 1!"
+  when: "get_project.json.count > 1"
+
+- name: "[role_devops_awx]/[job_templates] - Get the id of the AWX project"
+  set_fact:
+    project_id: "{{ get_project.json.results.0.id }}"
+  when: "get_project.json.count == 1"
+
+  
+- name: "[role_devops_awx]/[job_templates] - Check if the inventory {{ tri }}_{{ irtcode }}_LUD_INV_{{ env_item }} is already present"
+  uri:
+    url: "{{ role_devops_awx_api_url }}/inventories/?search={{ tri }}_{{ irtcode }}_LUD_INV_{{ env_item }}"
+    method: "GET"
+    headers:
+      Content-Type: "application/json"
+      Authorization: "Bearer {{ token }}"
+    validate_certs: "no"
+  register: get_inventory
+
+- name: "[role_devops_awx]/[create_job_templates] - Number of AWX inventories found: 0"
+  fail:
+    msg: "No AWX inventory found with the name of {{ tri }}_{{ irtcode }}_LUD_INV_{{ env_item }} or the user {{ role_devops_awx_login_user }} has no rights on it!"
+  when: "get_inventory.json.count == 0"
+
+- name: "[role_devops_awx]/[create_job_templates] - Number of AWX inventory found: at least 2"
+  fail:
+    msg: "The number of AWX inventories found with the name of {{ tri }}_{{ irtcode }}_LUD_INV_{{ env_item }} is greater than 1!"
+  when: "get_inventory.json.count > 1"
+
+- name: "[role_devops_awx]/[create_job_templates] - Get the id of the AWX inventory"
+  set_fact:
+    inventory_id: "{{ get_inventory.json.results.0.id }}"
+  when: "get_inventory.json.count == 1"
+  
+- name: "[role_devops_awx]/[create_job_templates] - Create the job_templates {{ tri }}_{{ irtcode }}_LUD_JOB_{{ env_item }}_{{ app_name }}"
+  uri:
+    url: "{{ role_devops_awx_api_url }}/job_templates/"
+    method: "POST"
+    headers:
+      Content-Type: "application/json"
+      Authorization: "Bearer {{ token }}"
+    body: "{{ lookup('template','create_job_template.json.j2') }}"
+    body_format: "json"
+    status_code: 201
+    validate_certs: "no"
+  register: create_template
+  when: "get_job_template.json.count == 0"
+  changed_when: create_template.status == 201
