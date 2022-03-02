@@ -1,0 +1,113 @@
+
+- set_fact:
+       username: "{{ tri }}_{{ irtcode }}_LUD_U_{{ jenkins_env_item }}"
+
+- name: "[role_devops_awx]/[create_user] - Check if the user {{ username }} is already present"
+  uri:
+    url: "{{ role_devops_awx_api_url }}/organizations/{{ organization_id }}/users?search={{ username }}"
+    method: "GET"
+    headers:
+      Content-Type: "application/json"
+      Authorization: "Bearer {{ token }}"
+    validate_certs: "no"
+  register: get_user
+
+- set_fact:
+       user_password: "{{ lookup('password', '/dev/null length=15 chars=ascii_letters') }}"
+
+- name: "[role_devops_awx]/[create_user] - Create the user {{ username }}"
+  uri:
+    url: "{{ role_devops_awx_api_url }}/organizations/{{ organization_id }}/users/"
+    method: "POST"
+    headers:
+      Content-Type: "application/json"
+      Authorization: "Bearer {{ token }}"
+    body: "{{ lookup('template','create_user.json.j2') }}"
+    body_format: "json"
+    status_code: 201
+    validate_certs: "no"
+  register: create_user
+  when: "get_user.json.count == 0"
+  changed_when: create_user.status == 201
+
+- set_fact:
+       credential_id: "{{ tri | lower }}_{{ irtcode | lower }}_lud_cred_awx_{{ jenkins_env_item | lower }}_simpleauth_x"
+
+- set_fact:
+       env: "{{ jenkins_env_item }}"
+
+- name: "[role_devops_awx]/[create_user] -HPRD- Check if credential  {{ credential_id }} for exist"
+  uri:
+    url: "{{ role_devops_awx_jenkins_credential_hprd_url }}/credentials/store/folder/domain/_/credential/{{ credential_id }}/config.xml"
+    method: GET
+    headers:
+      Cookie: '{{ crumb.set_cookie }}'
+      Jenkins-Crumb: '{{ crumb.content.split(":")[1]  }}'
+    validate_certs: false
+    force_basic_auth: yes
+    user: "{{ role_devops_awx_jenkins_user }}"
+    password: '{{ role_devops_awx_jenkins_token }}'
+    follow_redirects: all
+    return_content: yes
+  register: check_credential_hprd
+  when: env == "HPRD"
+  failed_when: False
+  changed_when: False
+
+
+- name: "[role_devops_awx]/[create_user] -HPRD- Create credential{{ credential_id }}"
+  uri:
+    url: "{{ role_devops_awx_jenkins_credential_hprd_url }}/credentials/store/folder/domain/_/createCredentials"
+    method: POST
+    headers:
+      Content-Type: "application/xml" 
+      Cookie: '{{ crumb.set_cookie }}'
+      Jenkins-Crumb: '{{ crumb.content.split(":")[1]  }}'
+    validate_certs: false 
+    body:  "{{ lookup('template', 'create_credential.xml.j2')}}"
+    force_basic_auth: yes
+    user: "{{ role_devops_awx_jenkins_user }}"
+    password: "{{ role_devops_awx_jenkins_token }}"
+    follow_redirects: all
+    return_content: yes
+  register: create_credential_hprd
+  when: env == "HPRD" and check_credential_hprd.status == 404
+  changed_when: create_credential_hprd.status == 200
+
+- name: "[role_devops_awx]/[create_user] -PROD- Check if credential  {{ credential_id }} for exist"
+  uri:
+    url: "{{ role_devops_awx_jenkins_credential_prod_url }}/credentials/store/folder/domain/_/credential/{{ credential_id }}/config.xml"
+    method: GET
+    headers:
+      Cookie: '{{ crumb.set_cookie }}'
+      Jenkins-Crumb: '{{ crumb.content.split(":")[1]  }}'
+    validate_certs: false
+    force_basic_auth: yes
+    user: "{{ role_devops_awx_jenkins_user }}"
+    password: '{{ role_devops_awx_jenkins_token }}'
+    follow_redirects: all
+    return_content: yes
+  register: check_credential_prod
+  when: env == "PROD"
+  failed_when: False
+  changed_when: False
+
+
+- name: "[role_devops_awx]/[create_user] -PROD- Create credential{{ credential_id }}"
+  uri:
+    url: "{{ role_devops_awx_jenkins_credential_prod_url }}/credentials/store/folder/domain/_/createCredentials"
+    method: POST
+    headers:
+      Content-Type: "application/xml" 
+      Cookie: '{{ crumb.set_cookie }}'
+      Jenkins-Crumb: '{{ crumb.content.split(":")[1]  }}'
+    validate_certs: false 
+    body:  "{{ lookup('template', 'create_credential.xml.j2')}}"
+    force_basic_auth: yes
+    user: "{{ role_devops_awx_jenkins_user }}"
+    password: "{{ role_devops_awx_jenkins_token }}"
+    follow_redirects: all
+    return_content: yes
+  register: create_credential_prod
+  when: env == "PROD" and check_credential_prod.status == 404
+  changed_when: create_credential_prod.status == 200
