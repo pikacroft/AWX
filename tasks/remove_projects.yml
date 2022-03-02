@@ -1,0 +1,41 @@
+- name: "[role_devops_awx]/[delete_projects] - Check if the project {{ projects_item }} is already present"
+  uri:
+    url: "{{ role_devops_awx_api_url }}/projects/?search={{ projects_item }}"
+    method: "GET"
+    headers:
+      Content-Type: "application/json"
+      Authorization: "Bearer {{ token }}"
+    validate_certs: "no"
+  register: get_project
+
+- name: "[role_devops_awx]/[delete_projects] - Number of AWX projects found: 0"
+  fail:
+    msg: "No AWX project found with the name of {{ projects_item }} or the user {{ role_devops_awx_login_user }} has no rights on it!"
+  when: "get_project.json.count == 0"
+
+- name: "[role_devops_awx]/[delete_projects] - Number of AWX project found: at least 2"
+  fail:
+    msg: "The number of AWX projects found with the name of {{ projects_item }} is greater than 1!"
+  when: "get_project.json.count > 1"
+
+- name: "[role_devops_awx]/[delete_projects] - Get the id of the AWX project"
+  set_fact:
+    project_id: "{{ get_project.json.results.0.id }}"
+  when: "get_project.json.count == 1"
+
+- name: "[role_devops_awx]/[delete_projects] - delete the project {{ projects_item }}"
+  uri:
+    url: "{{ role_devops_awx_api_url }}/projects/{{ project_id }}/"
+    method: "DELETE"
+    headers:
+      Content-Type: "application/json"
+      Authorization: "Bearer {{ token }}"
+    validate_certs: "no"
+    follow_redirects: all
+    return_content: yes
+    status_code: 
+    - 204
+    - 301
+  register: delete_project
+  when: "get_project.json.count == 1"
+  changed_when: delete_project.status == 204
