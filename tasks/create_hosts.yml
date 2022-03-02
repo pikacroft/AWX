@@ -1,0 +1,24 @@
+- name: "[role_devops_awx]/[create_inventories] - Check if the host {{ host_item.host_name}} of inventory {{ obj.inventory_name }} is created"
+  uri:
+    url: "{{ role_devops_awx_api_url }}/inventories/{{ inventory_id }}/hosts/?search={{ host_item.host_name}}"
+    method: "GET"
+    headers:
+      Content-Type: "application/json"
+      Authorization: "Bearer {{ token }}"
+    validate_certs: "no"
+  register: get_host
+
+- name: "[role_devops_awx]/[create_hosts] - create a host {{ host_item.host_name}} of {{ obj.inventory_name }} inventory "
+  uri:
+    url: "{{ role_devops_awx_api_url }}/inventories/{{ inventory_id }}/hosts/"
+    method: "POST"
+    headers:
+      Content-Type: "application/json"
+      Authorization: "Bearer {{ token }}"
+    body: '{ "name":" {{ host_item.host_name }}", "description": "{{ host_item.description }}" }'
+    body_format: "json"
+    status_code: 201
+    validate_certs: "no"
+  register: create_host
+  when: "get_host.json.count == 0"
+  changed_when: create_host.status == 201
