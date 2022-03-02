@@ -1,0 +1,15 @@
+- name: "[role_devops_awx]/[create_apps_cred] - Create the application and SSH KEYS for {{ env_item }} env "
+  uri:
+    url: "{{ role_devops_awx_api_url }}/job_templates/{{ role_devops_awx_job_id_lud_smy }}/launch/"
+    method: "POST"
+    headers:
+      Content-Type: "application/json"
+      Authorization: "Bearer {{ token }}"
+    body: "{{ lookup('template','create_apps_cred.json.j2') }}"
+    body_format: "json"
+    validate_certs: "no"
+    follow_redirects: all
+    return_content: yes
+    status_code: 201
+  register: create_apps_cred
+  changed_when: create_apps_cred.status == 201
