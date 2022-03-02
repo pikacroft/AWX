@@ -1,0 +1,33 @@
+- name: "[role_devops_awx]/[delete_inventories] - Check if the inventory {{ obj.inventory_name }} is already present"
+  uri:
+    url: "{{ role_devops_awx_api_url }}/inventories/?search={{ obj.inventory_name }}"
+    method: "GET"
+    headers:
+      Content-Type: "application/json"
+      Authorization: "Bearer {{ token }}"
+    validate_certs: "no"
+  register: get_inventory
+
+
+- name: "[role_devops_awx]/[delete_inventories] - Get the id of the AWX inventory"
+  set_fact:
+    inventory_id: "{{ get_inventory.json.results.0.id }}"
+  when: "get_inventory.json.count == 1"
+
+- name: "[role_devops_awx]/[delete_inventories] - delete the inventory {{ obj.inventory_name }}"
+  uri:
+    url: "{{ role_devops_awx_api_url }}/inventories/{{ inventory_id }}/"
+    method: "DELETE"
+    headers:
+      Content-Type: "application/json"
+      Authorization: "Bearer {{ token }}"
+    validate_certs: "no"
+    follow_redirects: all
+    return_content: yes
+    status_code: 
+    - 204
+    - 301
+    - 202
+  register: delete_inventory
+  when: "get_inventory.json.count == 1"
+  changed_when: delete_inventory.status == 202
