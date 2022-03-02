@@ -1,0 +1,2 @@
+role_devops_awx_jenkins_credential_hprd_url: "{{role_devops_awx_jenkins_url}}/team-bigdata/job/jobs/job/{{ tri }}/job/{{ irtcode }}"
+role_devops_awx_jenkins_credential_prod_url: "{{role_devops_awx_jenkins_url}}/team-bigdata/job/jobs/job/{{ tri }}/job/{{ irtcode }}/job/PROD"
