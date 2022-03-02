@@ -1,0 +1,28 @@
+---
+
+- name:  "[role_devops_awx]/[main] - Check that input variables are well transmitted to launch the AWX tasks"
+  assert:
+    that:
+      - "{{ item }} is defined"
+  with_items:
+    - state
+
+- name: "[role_devops_awx]/[main] - Prerequisites : login to AWX and first checks"
+  include: login.yml
+
+- name: "[role_devops_awx]/[main] - LAUNCH JOB_LUD_SMY_A5417_CRED_MANAGE_APP_CREATE"
+  include: create_apps_cred.yml
+  with_items:
+    - "{{ role_devops_awx_env_list }}"
+  loop_control:
+    loop_var: env_item
+  when: state == "present"
+
+- name: "[role_devops_awx]/[main] - Create AWX structures"
+  include: create.yml
+  when: state == "present"
+
+- name: "[role_devops_awx]/[main] - Remove AWX structures"
+  include: remove.yml
+  when: state == "absent"
+...
