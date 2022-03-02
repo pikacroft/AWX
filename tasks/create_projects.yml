@@ -1,0 +1,26 @@
+- name: "[role_devops_awx]/[create_projects] - Check if the project {{ projects_item }} is already present"
+  uri:
+    url: "{{ role_devops_awx_api_url }}/projects/?search={{ projects_item }}"
+    method: "GET"
+    headers:
+      Content-Type: "application/json"
+      Authorization: "Bearer {{ token }}"
+    validate_certs: "no"
+  register: get_project
+
+- name: "[role_devops_awx]/[create_projects] - Create the project {{ projects_item }}"
+  uri:
+    url: "{{ role_devops_awx_api_url }}/organizations/{{ role_devops_awx_organization }}/projects/"
+    method: "POST"
+    headers:
+      Content-Type: "application/json"
+      Authorization: "Bearer {{ token }}"
+    body: "{{ lookup('template','create_project.json.j2') }}"
+    body_format: "json"
+    validate_certs: "no"
+    follow_redirects: all
+    return_content: yes
+    status_code: 201
+  register: create_project
+  when: "get_project.json.count == 0"
+  changed_when: create_project.status == 201
