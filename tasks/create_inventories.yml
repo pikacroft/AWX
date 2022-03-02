@@ -1,0 +1,47 @@
+- name: "[role_devops_awx]/[create_inventories] - Check if the inventory {{ obj.inventory_name }} is already present"
+  uri:
+    url: "{{ role_devops_awx_api_url }}/inventories/?search={{ obj.inventory_name }}"
+    method: "GET"
+    headers:
+      Content-Type: "application/json"
+      Authorization: "Bearer {{ token }}"
+    validate_certs: "no"
+  register: get_inventory
+
+- name: "[role_devops_awx]/[create_inventories] - Create the inventory {{ obj.inventory_name }}"
+  uri:
+    url: "{{ role_devops_awx_api_url }}/inventories/"
+    method: "POST"
+    headers:
+      Content-Type: "application/json"
+      Authorization: "Bearer {{ token }}"
+    body: "{{ lookup('template','create_inventory.json.j2') }}"
+    body_format: "json"
+    status_code: 201
+    validate_certs: "no"
+  register: create_inventory
+  when: "get_inventory.json.count == 0"
+  changed_when: create_inventory.status == 201
+
+
+- name: "[role_devops_awx]/[create_inventories] - Check if the inventory {{ obj.inventory_name }} is created"
+  uri:
+    url: "{{ role_devops_awx_api_url }}/inventories/?search={{ obj.inventory_name }}"
+    method: "GET"
+    headers:
+      Content-Type: "application/json"
+      Authorization: "Bearer {{ token }}"
+    validate_certs: "no"
+  register: get_inventory_created
+
+- name: "[role_devops_awx]/[job_templates] - Get the id of the AWX inventory"
+  set_fact:
+    inventory_id: "{{ get_inventory_created.json.results.0.id }}"
+  when: "get_inventory_created.json.count == 1"
+
+- name: "[role_devops_awx]/[create_inventories] - Creation of hosts"
+  include: create_hosts.yml
+  with_items:
+    - "{{ obj.hosts }}"
+  loop_control:
+    loop_var: host_item
