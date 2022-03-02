@@ -1,0 +1,60 @@
+---
+role_devops_awx_token: "FfI2OQbdFK7vGCzgIA36bqp0C3X0qp"
+role_devops_awx_api_url: "https://aaf.safe.socgen/api/v2"
+role_devops_awx_organization: "{{ tri }}-{{ irtcode }}-DEVOPS"
+role_devops_awx_jenkins_url:  "https://spice.socgen"
+role_devops_awx_jenkins_user: "world-jenkins-lucid@socgen.com"
+role_devops_awx_jenkins_token: "11b8947a4ec269055ac02f8d26c7961840"
+role_devops_awx_job_id_lud_smy: "51580"
+role_devops_awx_jenkins_env_list:
+  - HPRD
+  - PROD
+role_devops_awx_inventory_name: "{{ tri }}_{{ irtcode }}_LUD_INV_{{ env_item }}"
+role_devops_awx_teams_list:
+  - "{{ tri }}_{{ irtcode }}_TEAM_DEVS"
+  - "{{ tri }}_{{ irtcode }}_TEAM_TECHLEADS"
+  - "{{ tri }}_{{ irtcode }}_TEAM_OPS"
+  - "{{ tri }}_{{ irtcode }}_TEAM_DEVOPS"
+  - "{{ tri }}_{{ irtcode }}_TEAM_DATASCIENTISTS"
+  - "{{ tri }}_{{ irtcode }}_TEAM_REPORTERS"
+role_devops_awx_projects_list:
+  - "{{ tri }}_{{ irtcode }}_LUD_PROJECT_{{ app_name }}"
+role_devops_awx_env_list:
+  - "DEV"
+  - "FHML"
+  - "THML"
+  - "INT"
+  - "PRD"
+
+role_devops_awx_inventory_list:
+  - inventory_name: "{{ tri }}_{{ irtcode }}_LUD_INV_DEV"
+    hosts:
+      - host_name: "lud-ludd01-edge01.lucid.socgen"
+        description: ""
+      - host_name: "lud-ludd01-edge02.lucid.socgen"
+        description: ""
+  - inventory_name: "{{ tri }}_{{ irtcode }}_LUD_INV_FHML"
+    hosts:
+      - host_name: "lud-ludh01-edge01.lucid.socgen"
+        description: ""
+      - host_name: "lud-ludh01-edge02.lucid.socgen"
+        description: ""
+  - inventory_name: "{{ tri }}_{{ irtcode }}_LUD_INV_THML"
+    hosts:
+      - host_name: "lud-ludh01-edge01.lucid.socgen"
+        description: ""
+      - host_name: "lud-ludh01-edge02.lucid.socgen"
+        description: ""
+  - inventory_name: "{{ tri }}_{{ irtcode }}_LUD_INV_INT"
+    hosts:
+      - host_name: "lud-ludi01-edge01.lucid.socgen"
+        description: ""
+      - host_name: "lud-ludi01-edge02.lucid.socgen"
+        description: ""
+  - inventory_name: "{{ tri }}_{{ irtcode }}_LUD_INV_PRD"
+    hosts:
+      - host_name: "lud-ludp01-edge01.lucid.socgen"
+        description: ""
+      - host_name: "lud-ludp01-edge02.lucid.socgen"
+        description: ""
+...
