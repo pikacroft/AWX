@@ -1,0 +1,36 @@
+---
+
+- name:  "[role_devops_awx]/[remove] - Check that input variables are well transmitted to remove the resources in AWX"
+  assert:
+    that: "{{ item }} is defined"
+  with_items:
+    - role_devops_awx_api_url
+
+- name: "[role_devops_awx]/[remove] - Removal of Teams"
+  include: remove_teams.yml
+  with_items:
+    - "{{ role_devops_awx_teams_list }}"
+  loop_control:
+    loop_var: team_item
+
+- name: "[role_devops_awx]/[remove] - Removal of Projects"
+  include: remove_projects.yml
+  with_items:
+    - "{{ role_devops_awx_projects_list }}"
+  loop_control:
+    loop_var: projects_item
+
+- name: "[role_devops_awx]/[remove] - Removal of job_templates"
+  include: remove_job_templates.yml
+  with_items:
+    - "{{ role_devops_awx_env_list }}"
+  loop_control:
+    loop_var: env_item
+
+- name: "[role_devops_awx]/[remove] - Removal of inventories"
+  include: remove_inventories.yml obj={{ inventory_item }}
+  with_items:
+    - "{{ role_devops_awx_inventory_list }}"
+  loop_control:
+    loop_var: inventory_item
+...
