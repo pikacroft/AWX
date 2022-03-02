@@ -1,0 +1,40 @@
+---
+
+- name:  "[role_devops_awx]/[login] - Check that input variables are well transmitted to login to AWX"
+  assert:
+    that: "{{ item }} is defined"
+  with_items:
+    - role_devops_awx_token
+    - role_devops_awx_api_url
+    - role_devops_awx_organization
+
+- name: "[role_devops_awx]/[login] - GET the token  authentication"
+  set_fact:
+    token: "{{ role_devops_awx_token }}"
+
+- name: "[role_devops_awx]/[login] - Check the presence and rights to access the AWX organization"
+  uri:
+    url: "{{ role_devops_awx_api_url }}/organizations/?search={{ role_devops_awx_organization }}"
+    method: "GET"
+    headers:
+      Content-Type: "application/json"
+      Authorization: "Bearer {{ token }}"
+    validate_certs: "no"
+  register: list_organizations
+
+- name: "[role_devops_awx]/[login] - Number of AWX organizations found: 0"
+  fail:
+    msg: "No AWX organization found with the name of {{ role_devops_awx_organization }} or the user {{ role_devops_awx_login_user }} has no rights on it!"
+  when: "list_organizations.json.count == 0"
+
+- name: "[role_devops_awx]/[login] - Number of AWX organizations found: at least 2"
+  fail:
+    msg: "The number of AWX organization found with the name of {{ role_devops_awx_organization }} is greater than 1!"
+  when: "list_organizations.json.count > 1"
+
+- name: "[role_devops_awx]/[login] - Get the id of the AWX organization"
+  set_fact:
+    organization_id: "{{ list_organizations.json.results.0.id }}"
+  when: "list_organizations.json.count == 1"
+
+...
