@@ -1,0 +1,11 @@
+#jinja2: trim_blocks:False
+{
+   "name":"{{ projects_item }}",
+   "description": "project {{ projects_item }} for {{ tri }} {{ irtcode }}",
+   "scm_type":"git",
+   "scm_branch":"main",
+   "scm_url":"git@sgithub.fr.world.socgen:{{ tri }}-{{ irtcode }}-LUD-APPS/playbook_app_{{ app_name | lower }}.git",
+   "credential":"1014",
+   "scm_update_on_launch": "true",
+   "scm_clean": "true"
+}
